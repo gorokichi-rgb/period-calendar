@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>生理カレンダー</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ヘッダー：左右ボタン＋年月表示 -->
+  <div class="header">
+    <button id="prev">&lt;</button>
+    <span id="monthYear"></span>
+    <button id="next">&gt;</button>
+  </div>
+
+  <!-- カレンダー本体 -->
+  <div class="calendar" id="calendar-grid">
+    <!-- 曜日 -->
+    <div class="weekday">日</div>
+    <div class="weekday">月</div>
+    <div class="weekday">火</div>
+    <div class="weekday">水</div>
+    <div class="weekday">木</div>
+    <div class="weekday">金</div>
+    <div class="weekday">土</div>
+    <!-- 日付は JS で追加 -->
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

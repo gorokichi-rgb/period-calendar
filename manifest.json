@@ -1,0 +1,253 @@
+index.html
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>生理カレンダー</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+
+  <!-- ヘッダー：左右ボタン＋年月表示 -->
+  <div class="header">
+    <button id="prev">&lt;</button>
+    <span id="monthYear"></span>
+    <button id="next">&gt;</button>
+  </div>
+
+  <!-- カレンダー本体 -->
+  <div class="calendar" id="calendar-grid">
+    <!-- 曜日 -->
+    <div class="weekday">日</div>
+    <div class="weekday">月</div>
+    <div class="weekday">火</div>
+    <div class="weekday">水</div>
+    <div class="weekday">木</div>
+    <div class="weekday">金</div>
+    <div class="weekday">土</div>
+    <!-- 日付は JS で追加 -->
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
+
+style.css
+
+body {
+  font-family: "Yu Gothic UI", "Segoe UI", sans-serif;
+  margin: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #fafafa;
+  color: #555;
+}
+
+/* ヘッダー：左右ボタン＋年月 */
+.header {
+  display: grid;
+  grid-template-columns: 50px 1fr 50px; /* 左右ボタンと中央の年月 */
+  width: 100%;
+  max-width: 100%; /* 画面幅いっぱいに */
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+#monthYear {
+  text-align: center;
+  font-size: 16px;
+  color: #555;
+}
+
+.header button {
+  width: 50px;
+  height: 50px;
+  font-size: 18px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  background-color: #fff;
+  cursor: pointer;
+}
+
+.header button:hover {
+  background-color: #f0f0f0;
+}
+
+/* カレンダーグリッド */
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr); /* 7列均等 */
+  gap: 4px;
+  width: 100%;
+  max-width: 100%; /* 画面幅いっぱいに調整 */
+}
+
+/* 曜日と日付を正方形に */
+.weekday, .day {
+  aspect-ratio: 1 / 1;  /* 高さと幅を同じにする */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  border-radius: 6px;
+}
+
+/* 曜日のデザイン */
+.weekday {
+  background-color: #dcdcdc;
+  font-weight: bold;
+  border: none;
+}
+
+/* 曜日色 */
+.weekday:nth-child(1) { color: #e57373; }  /* 日曜 */
+.weekday:nth-child(7) { color: #64b5f6; } /* 土曜 */
+
+/* 日付ボタン */
+.day {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  cursor: pointer;
+}
+
+/* 生理日の色分け */
+.day.light { background-color: #f5c6c6; }
+.day.dark { background-color: #e57373; color: white; }
+
+/* スマホ対応：日付・曜日のサイズと配置 */
+@media screen and (max-width: 600px) {
+  .day, .weekday {
+    font-size: 14px;
+    min-height: 40px;
+    min-width: 40px;
+  }
+
+  .header button {
+    font-size: 16px;
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media screen and (max-width: 400px) {
+  .day, .weekday {
+    font-size: 12px;
+    min-height: 35px;
+    min-width: 35px;
+  }
+
+  .header button {
+    font-size: 14px;
+    width: 35px;
+    height: 35px;
+  }
+}
+
+
+script.js
+
+const calendarGrid = document.getElementById("calendar-grid");
+const monthYear = document.getElementById("monthYear");
+const prevBtn = document.getElementById("prev");
+const nextBtn = document.getElementById("next");
+
+let date = new Date();
+let periodData = JSON.parse(localStorage.getItem("periodData")) || {};
+
+function renderCalendar() {
+  const weekdaysCount = 7;
+  while (calendarGrid.children.length > weekdaysCount) {
+    calendarGrid.removeChild(calendarGrid.lastChild);
+  }
+
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  monthYear.textContent = `${year}年 ${month + 1}月`;
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const lastDate = new Date(year, month + 1, 0).getDate();
+
+for (let i = 0; i < firstDay; i++) {
+  const empty = document.createElement("div");
+  empty.classList.add("day");
+  empty.style.visibility = "hidden";
+  calendarGrid.appendChild(empty);
+}
+
+  for (let day = 1; day <= lastDate; day++) {
+    const dayDiv = document.createElement("div");
+    dayDiv.textContent = day;
+    dayDiv.classList.add("day");
+
+    const key = `${year}-${month}-${day}`;
+    if (periodData[key] === "light") dayDiv.classList.add("light");
+    if (periodData[key] === "dark") dayDiv.classList.add("dark");
+
+    dayDiv.addEventListener("click", () => {
+      if (!periodData[key]) {
+        periodData[key] = "light";
+        dayDiv.classList.add("light");
+      } else if (periodData[key] === "light") {
+        periodData[key] = "dark";
+        dayDiv.classList.replace("light", "dark");
+      } else {
+        delete periodData[key];
+        dayDiv.classList.remove("dark");
+      }
+      localStorage.setItem("periodData", JSON.stringify(periodData));
+    });
+
+    calendarGrid.appendChild(dayDiv);
+  }
+}
+
+prevBtn.addEventListener("click", () => {
+  date.setMonth(date.getMonth() - 1);
+  renderCalendar();
+});
+
+nextBtn.addEventListener("click", () => {
+  date.setMonth(date.getMonth() + 1);
+  renderCalendar();
+});
+
+renderCalendar();
+
+manifest.json
+
+{
+  "name": "生理カレンダー",
+  "short_name": "PeriodCal",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#fafafa",
+  "theme_color": "#e57373",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
+{
+  "name": "生理カレンダー",
+  "short_name": "PeriodCal",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#fafafa",
+  "theme_color": "#e57373",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
+
